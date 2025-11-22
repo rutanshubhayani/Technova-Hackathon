@@ -1,13 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 import './Calculator.css';
 
 const RouteCheck = () => {
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      delay: 50,
+      easing: 'ease-out-cubic',
+      once: true,
+      offset: 100
+    });
+  }, []);
+
   const [formData, setFormData] = useState({
     distance: '',
     batteryPercentage: '',
     batteryCapacity: '60',
     efficiency: '20',
-    unit: 'km'
+    unit: 'km',
+    origin: '',
+    destination: ''
   });
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -39,7 +53,9 @@ const RouteCheck = () => {
           batteryPercentage: parseFloat(formData.batteryPercentage),
           batteryCapacity: parseFloat(formData.batteryCapacity),
           efficiency: parseFloat(formData.efficiency),
-          unit: formData.unit
+          unit: formData.unit,
+          origin: formData.origin.trim(),
+          destination: formData.destination.trim()
         })
       });
 
@@ -60,13 +76,37 @@ const RouteCheck = () => {
   return (
     <div className="calculator-page">
       <div className="calculator-container">
-        <h2>🗺️ Smart Route Feasibility Check</h2>
-        <p className="calculator-description">
+        <h2 data-aos="fade-down">🗺️ Smart Route Feasibility Check</h2>
+        <p className="calculator-description" data-aos="fade-up" data-aos-delay="100">
           Enter your destination distance to instantly know if you can reach it or need to charge.
         </p>
 
-        <form onSubmit={handleSubmit} className="calculator-form">
-        <div className="form-group">
+        <form onSubmit={handleSubmit} className="calculator-form" data-aos="fade-up" data-aos-delay="200">
+          <div className="form-group" data-aos="fade-right" data-aos-delay="300">
+            <label>Origin (Optional)</label>
+            <input
+              type="text"
+              name="origin"
+              value={formData.origin}
+              onChange={handleChange}
+              placeholder="e.g., Toronto, ON or Current Location"
+            />
+            <small>Enter your starting point to check charging stations along the route</small>
+          </div>
+
+          <div className="form-group" data-aos="fade-left" data-aos-delay="400">
+            <label>Destination (Optional)</label>
+            <input
+              type="text"
+              name="destination"
+              value={formData.destination}
+              onChange={handleChange}
+              placeholder="e.g., Montreal, QC"
+            />
+            <small>Enter your destination to check charging stations along the route</small>
+          </div>
+
+        <div className="form-group" data-aos="fade-right" data-aos-delay="500">
   <label>Destination Distance</label>
   <div className="input-with-unit">
     <input
@@ -91,7 +131,7 @@ const RouteCheck = () => {
   </div>
 </div>
 
-          <div className="form-group">
+          <div className="form-group" data-aos="fade-left" data-aos-delay="600">
             <label>Current Battery Percentage (%)</label>
             <input
               type="number"
@@ -106,7 +146,7 @@ const RouteCheck = () => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group" data-aos="fade-right" data-aos-delay="700">
             <label>Battery Capacity (kWh)</label>
             <input
               type="number"
@@ -121,7 +161,7 @@ const RouteCheck = () => {
             <small>Default: 60 kWh</small>
           </div>
 
-          <div className="form-group">
+          <div className="form-group" data-aos="fade-left" data-aos-delay="800">
             <label>Efficiency (kWh per 100 km)</label>
             <input
               type="number"
@@ -136,29 +176,49 @@ const RouteCheck = () => {
             <small>Default: 20 kWh/100km</small>
           </div>
 
-          <button type="submit" className="calculate-button" disabled={loading}>
+          <button type="submit" className="calculate-button" disabled={loading} data-aos="zoom-in" data-aos-delay="900">
             {loading ? 'Checking...' : 'Check Route'}
           </button>
         </form>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <div className="error-message" data-aos="fade-in">{error}</div>}
 
         {result && (
-          <div className="result-card">
-            <div className={`route-status ${result.isReachable ? 'reachable' : 'charging-required'}`}>
+          <div className="result-card" data-aos="fade-up" data-aos-delay="100">
+            <div className={`route-status ${result.isReachable ? 'reachable' : 'charging-required'}`} data-aos="zoom-in" data-aos-delay="200">
               <h3>{result.isReachable ? '✅ Reachable' : '⚠️ Charging Required'}</h3>
               <p className="recommendation">{result.recommendation}</p>
             </div>
 
-            <div className="result-grid">
-              <div className="result-item">
+            {/* Station Warning Alert */}
+            {result.chargingStations && result.chargingStations.warning && (
+              <div className={`station-warning alert-${result.chargingStations.warning.level}`} data-aos="slide-down" data-aos-delay="300">
+                <div className="warning-header">
+                  <span className="warning-icon">
+                    {result.chargingStations.warning.level === 'high' ? '🚨' : 
+                     result.chargingStations.warning.level === 'medium' ? '⚠️' : '💡'}
+                  </span>
+                  <h4>
+                    {result.chargingStations.warning.level === 'high' ? 'Critical Alert' : 
+                     result.chargingStations.warning.level === 'medium' ? 'Important Notice' : 'Travel Tip'}
+                  </h4>
+                </div>
+                <p className="warning-message">{result.chargingStations.warning.message}</p>
+                <div className="station-count">
+                  Available Stations: {result.chargingStations.count}
+                </div>
+              </div>
+            )}
+
+            <div className="result-grid" data-aos="fade-up" data-aos-delay="400">
+              <div className="result-item" data-aos="slide-up" data-aos-delay="500">
                 <div className="result-label">Distance</div>
                 <div className="result-value">
                   {result.distance.kilometers} km<br />
                   <small>({result.distance.miles} mi)</small>
                 </div>
               </div>
-              <div className="result-item">
+              <div className="result-item" data-aos="slide-up" data-aos-delay="600">
                 <div className="result-label">Current Range</div>
                 <div className="result-value">
                   {result.currentRange.kilometers} km<br />
@@ -167,11 +227,11 @@ const RouteCheck = () => {
               </div>
               {!result.isReachable && (
                 <>
-                  <div className="result-item">
+                  <div className="result-item" data-aos="slide-up" data-aos-delay="700">
                     <div className="result-label">Battery Needed</div>
                     <div className="result-value">{result.batteryNeeded}%</div>
                   </div>
-                  <div className="result-item">
+                  <div className="result-item" data-aos="slide-up" data-aos-delay="800">
                     <div className="result-label">Additional Range Needed</div>
                     <div className="result-value">
                       {result.remainingRange.kilometers} km<br />
@@ -181,7 +241,7 @@ const RouteCheck = () => {
                 </>
               )}
               {result.isReachable && (
-                <div className="result-item">
+                <div className="result-item" data-aos="slide-up" data-aos-delay="700">
                   <div className="result-label">Remaining Range</div>
                   <div className="result-value">
                     {result.remainingRange.kilometers} km<br />

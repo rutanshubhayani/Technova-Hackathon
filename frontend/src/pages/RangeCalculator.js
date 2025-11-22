@@ -1,7 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 import './Calculator.css';
 
 const RangeCalculator = () => {
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      delay: 50,
+      easing: 'ease-out-cubic',
+      once: true,
+      offset: 100
+    });
+  }, []);
+
   const [formData, setFormData] = useState({
     batteryPercentage: '',
     batteryCapacity: '60',
@@ -153,13 +165,13 @@ const RangeCalculator = () => {
   return (
     <div className="calculator-page">
       <div className="calculator-container">
-        <h2>🔋 Battery Range Calculator</h2>
-        <p className="calculator-description">
+        <h2 data-aos="fade-down">🔋 Battery Range Calculator</h2>
+        <p className="calculator-description" data-aos="fade-up" data-aos-delay="100">
           Calculate your EV's travel range based on current battery percentage and vehicle specifications.
         </p>
 
-        <form onSubmit={handleSubmit} className="calculator-form">
-          <div className="form-group">
+        <form onSubmit={handleSubmit} className="calculator-form" data-aos="fade-up" data-aos-delay="200">
+          <div className="form-group" data-aos="fade-right" data-aos-delay="300">
             <label>Current Battery Percentage (%)</label>
             <input
               type="number"
@@ -174,7 +186,7 @@ const RangeCalculator = () => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group" data-aos="fade-left" data-aos-delay="400">
             <label>Battery Capacity (kWh)</label>
             <input
               type="number"
@@ -189,7 +201,7 @@ const RangeCalculator = () => {
             <small>Default: 60 kWh (typical EV battery)</small>
           </div>
 
-          <div className="form-group">
+          <div className="form-group" data-aos="fade-right" data-aos-delay="500">
             <label>Efficiency (kWh per 100 km)</label>
             <input
               type="number"
@@ -204,26 +216,26 @@ const RangeCalculator = () => {
             <small>Default: 20 kWh/100km (average EV efficiency)</small>
           </div>
 
-          <button type="submit" className="calculate-button" disabled={loading}>
+          <button type="submit" className="calculate-button" disabled={loading} data-aos="zoom-in" data-aos-delay="600">
             {loading ? 'Calculating...' : 'Calculate Range'}
           </button>
         </form>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <div className="error-message" data-aos="fade-in">{error}</div>}
 
         {result && (
-          <div className="result-card">
-            <h3>Range Estimate</h3>
+          <div className="result-card" data-aos="fade-up" data-aos-delay="100">
+            <h3 data-aos="fade-down" data-aos-delay="200">Range Estimate</h3>
             <div className="result-grid">
-              <div className="result-item">
+              <div className="result-item" data-aos="zoom-in" data-aos-delay="300">
                 <div className="result-label">Kilometers</div>
                 <div className="result-value">{result.range.kilometers} km</div>
               </div>
-              <div className="result-item">
+              <div className="result-item" data-aos="zoom-in" data-aos-delay="400">
                 <div className="result-label">Miles</div>
                 <div className="result-value">{result.range.miles} mi</div>
               </div>
-              <div className="result-item">
+              <div className="result-item" data-aos="zoom-in" data-aos-delay="500">
                 <div className="result-label">Available Energy</div>
                 <div className="result-value">{result.availableEnergy} kWh</div>
               </div>
@@ -232,14 +244,14 @@ const RangeCalculator = () => {
         )}
 
         {showDestinationCheck && result && (
-          <div className="destination-check-section">
-            <h3>📍 Check Destination Reachability</h3>
-            <p className="calculator-description">
+          <div className="destination-check-section" data-aos="fade-up" data-aos-delay="200">
+            <h3 data-aos="fade-right" data-aos-delay="300">📍 Check Destination Reachability</h3>
+            <p className="calculator-description" data-aos="fade-left" data-aos-delay="400">
               Enter your origin and destination to check if you can reach it with your current battery range.
             </p>
 
-            <form onSubmit={handleDestinationCheck} className="calculator-form">
-              <div className="form-group">
+            <form onSubmit={handleDestinationCheck} className="calculator-form" data-aos="fade-up" data-aos-delay="500">
+              <div className="form-group" data-aos="fade-right" data-aos-delay="600">
                 <label>Origin (Starting Point)</label>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <input
@@ -256,13 +268,14 @@ const RangeCalculator = () => {
                     disabled={destinationLoading}
                     className="btn-current-location"
                     style={{ padding: '0.75rem 1rem', whiteSpace: 'nowrap' }}
+                    data-aos="slide-left" data-aos-delay="700"
                   >
                     📍 Use Current Location
                   </button>
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className="form-group" data-aos="fade-left" data-aos-delay="800">
                 <label>Destination</label>
                 <input
                   type="text"
@@ -273,27 +286,27 @@ const RangeCalculator = () => {
                 />
               </div>
 
-              <button type="submit" className="calculate-button" disabled={destinationLoading}>
+              <button type="submit" className="calculate-button" disabled={destinationLoading} data-aos="zoom-in" data-aos-delay="900">
                 {destinationLoading ? 'Checking...' : 'Check Destination'}
               </button>
             </form>
 
-            {destinationError && <div className="error-message">{destinationError}</div>}
+            {destinationError && <div className="error-message" data-aos="fade-in">{destinationError}</div>}
 
             {destinationResult && (
-              <div className="result-card" style={{ marginTop: '1.5rem' }}>
-                <h3>Destination Check Results</h3>
+              <div className="result-card" style={{ marginTop: '1.5rem' }} data-aos="fade-up" data-aos-delay="100">
+                <h3 data-aos="fade-down" data-aos-delay="200">Destination Check Results</h3>
                 
                 <div className="result-grid">
-                  <div className="result-item">
+                  <div className="result-item" data-aos="slide-up" data-aos-delay="300">
                     <div className="result-label">Distance</div>
                     <div className="result-value">{destinationResult.distance.kilometers} km</div>
                   </div>
-                  <div className="result-item">
+                  <div className="result-item" data-aos="slide-up" data-aos-delay="400">
                     <div className="result-label">Your Range</div>
                     <div className="result-value">{destinationResult.currentRange.kilometers} km</div>
                   </div>
-                  <div className="result-item">
+                  <div className="result-item" data-aos="slide-up" data-aos-delay="500">
                     <div className="result-label">Status</div>
                     <div className={`result-value ${destinationResult.isReachable ? 'status-reachable' : 'status-unreachable'}`}>
                       {destinationResult.isReachable ? '✅ Reachable' : '⚠️ Charging Required'}
@@ -307,7 +320,7 @@ const RangeCalculator = () => {
                   borderRadius: '8px',
                   background: destinationResult.isReachable ? '#d4edda' : '#fff3cd',
                   border: `1px solid ${destinationResult.isReachable ? '#c3e6cb' : '#ffeaa7'}`
-                }}>
+                }} data-aos="fade-in" data-aos-delay="600">
                   <strong>{destinationResult.recommendation}</strong>
                   {!destinationResult.isReachable && destinationResult.batteryNeeded > 0 && (
                     <p style={{ marginTop: '0.5rem', marginBottom: 0 }}>
@@ -317,9 +330,9 @@ const RangeCalculator = () => {
                 </div>
 
                 {!destinationResult.isReachable && destinationResult.chargingStations && destinationResult.chargingStations.length > 0 && (
-                  <div className="charging-stations-recommendation" style={{ marginTop: '1.5rem' }}>
-                    <h4>🔌 Recommended Charging Stations</h4>
-                    <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                  <div className="charging-stations-recommendation" style={{ marginTop: '1.5rem' }} data-aos="fade-up" data-aos-delay="700">
+                    <h4 data-aos="fade-right" data-aos-delay="800">🔌 Recommended Charging Stations</h4>
+                    <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }} data-aos="fade-left" data-aos-delay="900">
                       Here are the best charging stations along your route:
                     </p>
                     <div className="stations-list">
@@ -330,7 +343,7 @@ const RangeCalculator = () => {
                           background: '#f8f9fa',
                           borderRadius: '8px',
                           border: '1px solid #dee2e6'
-                        }}>
+                        }} data-aos="slide-right" data-aos-delay={1000 + (index * 100)}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                             <div style={{ flex: 1 }}>
                               <h5 style={{ margin: '0 0 0.5rem 0', color: '#333' }}>{station.name}</h5>
@@ -353,6 +366,7 @@ const RangeCalculator = () => {
                                 rel="noopener noreferrer"
                                 className="map-link"
                                 style={{ marginLeft: '1rem' }}
+                                data-aos="zoom-in" data-aos-delay={1200 + (index * 100)}
                               >
                                 🗺️ Map
                               </a>
@@ -365,7 +379,7 @@ const RangeCalculator = () => {
                 )}
 
                 {!destinationResult.isReachable && (!destinationResult.chargingStations || destinationResult.chargingStations.length === 0) && (
-                  <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
+                  <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }} data-aos="fade-in" data-aos-delay="700">
                     <p style={{ margin: 0, color: '#666' }}>
                       No charging stations found along your route. Please check the Stations page for available charging points.
                     </p>

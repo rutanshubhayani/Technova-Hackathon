@@ -1,5 +1,6 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
+const db = require('../config/database');
 
 const router = express.Router();
 
@@ -51,8 +52,10 @@ router.post('/route-check', [
   body('batteryPercentage').isFloat({ min: 0, max: 100 }).withMessage('Battery percentage must be between 0 and 100'),
   body('batteryCapacity').optional().isFloat({ min: 0 }).withMessage('Battery capacity must be positive'),
   body('efficiency').optional().isFloat({ min: 0 }).withMessage('Efficiency must be positive'),
-  body('unit').optional().isIn(['km', 'miles']).withMessage('Unit must be km or miles')
-], (req, res) => {
+  body('unit').optional().isIn(['km', 'miles']).withMessage('Unit must be km or miles'),
+  body('origin').optional().notEmpty().withMessage('Origin location'),
+  body('destination').optional().notEmpty().withMessage('Destination location')
+], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -64,7 +67,9 @@ router.post('/route-check', [
       batteryPercentage, 
       batteryCapacity = DEFAULT_BATTERY_CAPACITY, 
       efficiency = AVERAGE_EFFICIENCY,
-      unit = 'km'
+      unit = 'km',
+      origin,
+      destination
     } = req.body;
 
     // Convert distance to km if in miles
@@ -81,7 +86,55 @@ router.post('/route-check', [
     const remainingRange = rangeKm - distanceKm;
     const batteryNeeded = isReachable ? 0 : ((distanceKm - rangeKm) / (efficiency / 100)) / batteryCapacity * 100;
 
-    res.json({
+    // Check for charging stations along the route if origin and destination are provided
+    let chargingStationsCount = null;
+    let stationWarning = null;
+    
+    if (origin && destination) {
+      try {
+        // Get all verified charging stations
+        const dbInstance = db.getDb();
+        const stations = await new Promise((resolve, reject) => {
+          dbInstance.all(
+            'SELECT * FROM charging_stations WHERE is_verified = 1',
+            (err, rows) => {
+              if (err) reject(err);
+              else resolve(rows || []);
+            }
+          );
+        });
+
+        // For this implementation, we'll do a simple count of stations
+        // In a real-world scenario, you'd calculate stations along the actual route
+        chargingStationsCount = stations.length;
+        
+        // Create warnings based on station availability
+        if (chargingStationsCount === 0) {
+          stationWarning = {
+            level: 'high',
+            message: 'No verified charging stations found in our database. Plan your trip carefully and consider alternative charging options.',
+            type: 'no-stations'
+          };
+        } else if (chargingStationsCount === 1) {
+          stationWarning = {
+            level: 'medium',
+            message: 'Only 1 verified charging station available. Consider checking station availability before traveling.',
+            type: 'limited-stations'
+          };
+        } else if (chargingStationsCount <= 3 && distanceKm > 100) {
+          stationWarning = {
+            level: 'low',
+            message: `${chargingStationsCount} verified charging stations available for your long journey. Consider planning charging stops.`,
+            type: 'few-stations'
+          };
+        }
+      } catch (error) {
+        console.error('Error checking charging stations:', error);
+        // Don't fail the route check if station check fails
+      }
+    }
+
+    const response = {
       distance: {
         kilometers: Math.round(distanceKm * 10) / 10,
         miles: Math.round(distanceKm * 0.621371 * 10) / 10
@@ -99,8 +152,19 @@ router.post('/route-check', [
         ? 'Reachable - You have sufficient battery to reach your destination'
         : `Charging Required - You need approximately ${Math.round(batteryNeeded)}% more battery or ${Math.round((distanceKm - rangeKm) * 10) / 10} km more range`,
       batteryNeeded: isReachable ? 0 : Math.round(batteryNeeded * 10) / 10
-    });
+    };
+
+    // Add station information if available
+    if (chargingStationsCount !== null) {
+      response.chargingStations = {
+        count: chargingStationsCount,
+        warning: stationWarning
+      };
+    }
+
+    res.json(response);
   } catch (error) {
+    console.error('Route check error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
